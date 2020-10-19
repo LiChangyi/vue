@@ -1182,5 +1182,37 @@ describe('Component keep-alive', () => {
         }).then(done)
       }
     })
+
+     // #add removing all dom event listeners when vnode destroyed, src/platforms/web/runtime/modules/events.js
+     it('should not attach event handler repeatedly', done => {
+      const vm = new Vue({
+        template: `
+          <keep-alive>
+            <btn v-if="showBtn" @click.native="add" />
+          </keep-alive>
+        `,
+        data: { showBtn: true, n: 0 },
+        methods: {
+          add () {
+            this.n++
+          }
+        },
+        components: {
+          btn: { template: '<button>add 1</button>' }
+        }
+      }).$mount()
+
+      const btn = vm.$el
+      expect(vm.n).toBe(0)
+      btn.click()
+      expect(vm.n).toBe(1)
+      vm.showBtn = false
+      waitForUpdate(() => {
+        vm.showBtn = true
+      }).then(() => {
+        btn.click()
+        expect(vm.n).toBe(2)
+      }).then(done)
+    })
   }
 })

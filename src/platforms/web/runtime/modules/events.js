@@ -5,7 +5,9 @@ import { updateListeners } from 'core/vdom/helpers/index'
 import { isIE, isFF, supportsPassive, isUsingMicroTask } from 'core/util/index'
 import { RANGE_TOKEN, CHECKBOX_RADIO_TOKEN } from 'web/compiler/directives/model'
 import { currentFlushTimestamp } from 'core/observer/scheduler'
+import { emptyNode } from 'core/vdom/patch'
 
+console.log('[JIMU Render] Vue source code has been modified(add removing all dom event listeners when vnode destroyed).')
 // normalize v-model event tokens that can only be determined at runtime.
 // it's important to place the event as the first in the array because
 // the whole point is ensuring the v-model callback gets called before
@@ -108,7 +110,9 @@ function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   }
   const on = vnode.data.on || {}
   const oldOn = oldVnode.data.on || {}
-  target = vnode.elm
+  // vnode is empty when removing all listeners,
+  // and use old vnode dom element
+  target = vnode.elm || oldVnode.elm
   normalizeEvents(on)
   updateListeners(on, oldOn, add, remove, createOnceHandler, vnode.context)
   target = undefined
@@ -116,5 +120,6 @@ function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
 
 export default {
   create: updateDOMListeners,
-  update: updateDOMListeners
+  update: updateDOMListeners,
+  destroy: (vnode: VNodeWithData) => updateDOMListeners(vnode, emptyNode)
 }

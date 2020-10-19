@@ -1,6 +1,6 @@
 /*!
  * Vue.js v2.6.11
- * (c) 2014-2019 Evan You
+ * (c) 2014-2020 Evan You
  * Released under the MIT License.
  */
 'use strict';
@@ -7470,6 +7470,7 @@ function genDefaultModel (
 
 /*  */
 
+console.log('[JIMU Render] Vue source code has been modified(add removing all dom event listeners when vnode destroyed).');
 // normalize v-model event tokens that can only be determined at runtime.
 // it's important to place the event as the first in the array because
 // the whole point is ensuring the v-model callback gets called before
@@ -7572,7 +7573,9 @@ function updateDOMListeners (oldVnode, vnode) {
   }
   var on = vnode.data.on || {};
   var oldOn = oldVnode.data.on || {};
-  target$1 = vnode.elm;
+  // vnode is empty when removing all listeners,
+  // and use old vnode dom element
+  target$1 = vnode.elm || oldVnode.elm;
   normalizeEvents(on);
   updateListeners(on, oldOn, add$1, remove$2, createOnceHandler$1, vnode.context);
   target$1 = undefined;
@@ -7580,7 +7583,8 @@ function updateDOMListeners (oldVnode, vnode) {
 
 var events = {
   create: updateDOMListeners,
-  update: updateDOMListeners
+  update: updateDOMListeners,
+  destroy: function (vnode) { return updateDOMListeners(vnode, emptyNode); }
 };
 
 /*  */
